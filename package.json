@@ -1,0 +1,22 @@
+{
+  "name": "hydra-publisher",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "files": [
+    "README.md",
+    "build/"
+  ],
+  "dependencies": {
+    "redis": "^4.6.14",
+    "ts-node-dev": "^2.0.0",
+    "ulid": "^2.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.9",
+    "typescript": "^5.5.2"
+  }
+}
