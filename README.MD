@@ -1,7 +1,7 @@
 # Hydra Async Pool Pulisher
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 
-![Architecture sample](https://github.com/not-empty/hydra-publisher/blob/main/hydra.jpg?raw=true)
+![Architecture sample](https://github.com/not-empty/hydra-publisher/blob/main/hydra.png)
 
 **Hydra Async Pool** is an open-source project designed to manage and limit asynchronous concurrency in high availability and high resource-demanding environments. This tool is essential for applications that need to restrict the number of simultaneous executions of certain tasks due to rate limits or resource constraints.
 
