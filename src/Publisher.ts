@@ -1,4 +1,4 @@
-import Redis, { RedisClientOptions, RedisClientType } from 'redis';
+import { RedisClientOptions, RedisClientType, createClient } from 'redis';
 import { ulid } from 'ulid';
 import { PoolJob, JobUpdateEvent } from './types';
 
@@ -30,7 +30,9 @@ function getRedisClient<R extends RedisClientGeneric, O extends RedisOptionsGene
     return options.redis;
   }
 
-  return Redis.createClient(options.redisOptions) as R;
+  const client = createClient(options.redisOptions) as R;
+  client.connect();
+  return client;
 }
 
 export class HydraPublisher<R extends RedisClientGeneric, O extends RedisOptionsGeneric> {

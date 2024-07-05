@@ -8,19 +8,18 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.HydraPublisher = void 0;
-const redis_1 = __importDefault(require("redis"));
+const redis_1 = require("redis");
 const ulid_1 = require("ulid");
 const types_1 = require("./types");
 function getRedisClient(options) {
     if (options.redis) {
         return options.redis;
     }
-    return redis_1.default.createClient(options.redisOptions);
+    const client = (0, redis_1.createClient)(options.redisOptions);
+    client.connect();
+    return client;
 }
 class HydraPublisher {
     constructor(options) {

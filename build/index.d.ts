@@ -1,2 +1,2 @@
-export * from './PoolClient';
+export * from './Publisher';
 export * from './types';
