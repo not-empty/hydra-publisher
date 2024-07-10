@@ -110,6 +110,14 @@ export class HydraPublisher<R extends RedisClientGeneric, O extends RedisOptions
     await this.sendJobUpdateEvent(job.id, JobUpdateEventType.ADDED);
   }
 
+  public async connect() {
+    await this.redisClient.connect();
+  }
+
+  public async close() {
+    await this.redisClient.disconnect();
+  }
+
   private async sendJobUpdateEvent(jobId: string, type: JobUpdateEventType) {
     const event: JobUpdateEvent = {
       type: JobUpdateEventType.ADDED,

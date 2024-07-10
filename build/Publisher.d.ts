@@ -29,6 +29,8 @@ export declare class HydraPublisher<R extends RedisClientGeneric, O extends Redi
     showPool(): Promise<PoolList>;
     getJob<T>(jobId: string): Promise<PoolJob<T> | null>;
     sendToPending(jobId: string): Promise<void>;
+    connect(): Promise<void>;
+    close(): Promise<void>;
     private sendJobUpdateEvent;
 }
 export {};

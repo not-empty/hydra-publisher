@@ -86,6 +86,16 @@ class HydraPublisher {
             yield this.sendJobUpdateEvent(job.id, types_1.JobUpdateEventType.ADDED);
         });
     }
+    connect() {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.redisClient.connect();
+        });
+    }
+    close() {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.redisClient.disconnect();
+        });
+    }
     sendJobUpdateEvent(jobId, type) {
         return __awaiter(this, void 0, void 0, function* () {
             const event = {
