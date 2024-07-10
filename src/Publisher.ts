@@ -1,6 +1,6 @@
 import { RedisClientOptions, RedisClientType, createClient } from 'redis';
 import { ulid } from 'ulid';
-import { PoolJob, JobUpdateEvent } from './types';
+import { PoolJob, JobUpdateEvent, HydraHandlers, JobUpdateEventType } from './types';
 
 type RedisClientGeneric = RedisClientType<any, any, any>;
 type RedisOptionsGeneric = RedisClientOptions<any, any, any>;
@@ -56,14 +56,15 @@ export class HydraPublisher<R extends RedisClientGeneric, O extends RedisOptions
 
   }
 
-  public async addJob<T>(data: T): Promise<string> {
+  public async addJob<T>(data: T, handlers?: HydraHandlers): Promise<string> {
     const job: PoolJob<T> = {
       id: ulid(),
+      handlers,
       data
     };
 
     await this.redisClient.lPush(this.keys.POOL_PENDING, JSON.stringify(job));
-    await this.redisClient.publish(this.keys.JOB_UPDATE_EVENT, JobUpdateEvent.ADDED);
+    await this.sendJobUpdateEvent(job.id, JobUpdateEventType.ADDED);
     return job.id;
   }
 
@@ -71,7 +72,7 @@ export class HydraPublisher<R extends RedisClientGeneric, O extends RedisOptions
     await this.redisClient.del(`${this.keys.POOL_JOB}:${jobId}`);
     await this.redisClient.sRem(this.keys.POOL_EXECUTING, jobId);
     await this.redisClient.sRem(this.keys.POOL_INITIALIZED, jobId);
-    await this.redisClient.publish(this.keys.JOB_UPDATE_EVENT, JobUpdateEvent.FINISHED);
+    await this.sendJobUpdateEvent(jobId, JobUpdateEventType.FINISHED);
   }
 
   public async showPool(): Promise<PoolList> {
@@ -84,6 +85,38 @@ export class HydraPublisher<R extends RedisClientGeneric, O extends RedisOptions
       executing,
       pending
     };
+  }
+
+  public async getJob<T>(jobId: string): Promise<PoolJob<T> | null> {
+    const job = await this.redisClient.get(`${this.keys.POOL_JOB}:${jobId}`);
+  
+    if (!job) {
+      return null;
+    }
+  
+    return JSON.parse(job) as PoolJob<T>;
+  }
+
+  public async sendToPending(jobId: string) {
+    const job = await this.getJob(jobId);
+
+    if (!job) {
+      return;
+    }
+
+    await this.redisClient.sRem(this.keys.POOL_EXECUTING, jobId);
+    await this.redisClient.sRem(this.keys.POOL_INITIALIZED, jobId);
+    await this.redisClient.lPush(this.keys.POOL_PENDING, JSON.stringify(job));
+    await this.sendJobUpdateEvent(job.id, JobUpdateEventType.ADDED);
+  }
+
+  private async sendJobUpdateEvent(jobId: string, type: JobUpdateEventType) {
+    const event: JobUpdateEvent = {
+      type: JobUpdateEventType.ADDED,
+      jobId
+    }
+
+    await this.redisClient.publish(this.keys.JOB_UPDATE_EVENT, JSON.stringify(event));
   }
 
 }
