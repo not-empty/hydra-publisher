@@ -1,4 +1,5 @@
 import { RedisClientOptions, RedisClientType } from 'redis';
+import { PoolJob, HydraHandlers } from './types';
 type RedisClientGeneric = RedisClientType<any, any, any>;
 type RedisOptionsGeneric = RedisClientOptions<any, any, any>;
 export interface PoolList {
@@ -23,8 +24,13 @@ export declare class HydraPublisher<R extends RedisClientGeneric, O extends Redi
     private prefix;
     private keys;
     constructor(options: HydraPublisherOptions<R, O>);
-    addJob<T>(data: T): Promise<string>;
+    addJob<T>(data: T, handlers?: HydraHandlers): Promise<string>;
     finishJob(jobId: string): Promise<void>;
     showPool(): Promise<PoolList>;
+    getJob<T>(jobId: string): Promise<PoolJob<T> | null>;
+    sendToPending(jobId: string): Promise<void>;
+    connect(): Promise<void>;
+    close(): Promise<void>;
+    private sendJobUpdateEvent;
 }
 export {};

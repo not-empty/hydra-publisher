@@ -33,14 +33,15 @@ class HydraPublisher {
             JOB_UPDATE_EVENT: `${this.prefix}_job_update`,
         };
     }
-    addJob(data) {
+    addJob(data, handlers) {
         return __awaiter(this, void 0, void 0, function* () {
             const job = {
                 id: (0, ulid_1.ulid)(),
+                handlers,
                 data
             };
             yield this.redisClient.lPush(this.keys.POOL_PENDING, JSON.stringify(job));
-            yield this.redisClient.publish(this.keys.JOB_UPDATE_EVENT, types_1.JobUpdateEvent.ADDED);
+            yield this.sendJobUpdateEvent(job.id, types_1.JobUpdateEventType.ADDED);
             return job.id;
         });
     }
@@ -49,7 +50,7 @@ class HydraPublisher {
             yield this.redisClient.del(`${this.keys.POOL_JOB}:${jobId}`);
             yield this.redisClient.sRem(this.keys.POOL_EXECUTING, jobId);
             yield this.redisClient.sRem(this.keys.POOL_INITIALIZED, jobId);
-            yield this.redisClient.publish(this.keys.JOB_UPDATE_EVENT, types_1.JobUpdateEvent.FINISHED);
+            yield this.sendJobUpdateEvent(jobId, types_1.JobUpdateEventType.FINISHED);
         });
     }
     showPool() {
@@ -62,6 +63,46 @@ class HydraPublisher {
                 executing,
                 pending
             };
+        });
+    }
+    getJob(jobId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const job = yield this.redisClient.get(`${this.keys.POOL_JOB}:${jobId}`);
+            if (!job) {
+                return null;
+            }
+            return JSON.parse(job);
+        });
+    }
+    sendToPending(jobId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const job = yield this.getJob(jobId);
+            if (!job) {
+                return;
+            }
+            yield this.redisClient.sRem(this.keys.POOL_EXECUTING, jobId);
+            yield this.redisClient.sRem(this.keys.POOL_INITIALIZED, jobId);
+            yield this.redisClient.lPush(this.keys.POOL_PENDING, JSON.stringify(job));
+            yield this.sendJobUpdateEvent(job.id, types_1.JobUpdateEventType.ADDED);
+        });
+    }
+    connect() {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.redisClient.connect();
+        });
+    }
+    close() {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.redisClient.disconnect();
+        });
+    }
+    sendJobUpdateEvent(jobId, type) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const event = {
+                type: types_1.JobUpdateEventType.ADDED,
+                jobId
+            };
+            yield this.redisClient.publish(this.keys.JOB_UPDATE_EVENT, JSON.stringify(event));
         });
     }
 }

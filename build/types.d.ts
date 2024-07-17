@@ -1,9 +1,18 @@
 export interface PoolJob<T> {
     id: string;
+    handlers?: HydraHandlers;
     data: T;
 }
-export declare enum JobUpdateEvent {
+export interface HydraHandlers {
+    onStartJob?: string;
+    onFinishJob?: string;
+}
+export declare enum JobUpdateEventType {
     STARTED = "STARTED",
     FINISHED = "FINISHED",
     ADDED = "ADDED"
+}
+export interface JobUpdateEvent {
+    type: JobUpdateEventType;
+    jobId: string;
 }
